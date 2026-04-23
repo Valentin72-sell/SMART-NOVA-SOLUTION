@@ -1,0 +1,62 @@
+const int doorButton = 7;
+const int resetButton = 8;
+const int redLED = 2;
+const int greenLED = 3;
+const int buzzer = 6;
+const int ldrPin = A0;
+
+bool alarmActive = false;
+
+void setup() {
+  pinMode(doorButton, INPUT);
+  pinMode(resetButton, INPUT);
+  pinMode(redLED, OUTPUT);
+  pinMode(greenLED, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+
+  Serial.begin(9600);
+  Serial.println("MONITORING ACTIVE");
+}
+
+void loop() {
+  int doorState = digitalRead(doorButton);
+  int resetState = digitalRead(resetButton);
+  int ldrValue = analogRead(ldrPin);
+
+  // 🌙 Night Mode
+  if (ldrValue > 600 && !alarmActive) {
+    Serial.println("NIGHT MODE ON");
+    digitalWrite(greenLED, HIGH);
+    delay(5000);
+    digitalWrite(greenLED, LOW);
+    delay(5000);
+  } 
+  else if (!alarmActive) {
+    digitalWrite(greenLED, HIGH);
+  }
+
+  // 🚨 Intruder detection
+  if (doorState == HIGH && !alarmActive) {
+    alarmActive = true;
+    Serial.println("INTRUDER DETECTED");
+
+    for (int i = 0; i < 10; i++) {
+      digitalWrite(redLED, HIGH);
+      digitalWrite(buzzer, HIGH);
+      delay(3000);
+
+      digitalWrite(redLED, LOW);
+      digitalWrite(buzzer, LOW);
+      delay(3000);
+    }
+  }
+
+ 
+  if (resetState == HIGH && alarmActive) {
+    alarmActive = false;
+    Serial.println("SYSTEM RESET");
+
+    digitalWrite(redLED, LOW);
+    digitalWrite(buzzer, LOW);
+  }
+}
