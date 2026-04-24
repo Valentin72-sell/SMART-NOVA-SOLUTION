@@ -1,0 +1,56 @@
+// Pin assignments
+const int buttonArm = 7;     // Arm/disarm button
+const int buttonReset = 8;   // Reset button
+const int ledRed = 2;        // Alarm LED
+const int ledGreen = 3;      // Armed LED
+const int buzzer = 6;        // Buzzer
+const int ldrPin = A0;       // Photoresistor input
+
+bool armed = false;          
+bool alarmTriggered = false; 
+
+void setup() {
+  pinMode(buttonArm, INPUT_PULLUP);   // use pull-up for stable input
+  pinMode(buttonReset, INPUT_PULLUP); // use pull-up for stable input
+  pinMode(ledRed, OUTPUT);
+  pinMode(ledGreen, OUTPUT);
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  // Arm/disarm toggle
+  if (digitalRead(buttonArm) == LOW) { // pressed = LOW with pull-up
+    armed = !armed;
+    alarmTriggered = false;
+    delay(300); // debounce
+  }
+
+  // Reset button clears alarm
+  if (digitalRead(buttonReset) == LOW) {
+    alarmTriggered = false;
+    delay(300); // debounce
+  }
+
+  if (armed) {
+    digitalWrite(ledGreen, HIGH); // Armed LED ON
+
+    int lightValue = analogRead(ldrPin);
+    if (lightValue > 600) { // adjust threshold
+      alarmTriggered = true;
+    }
+
+    if (alarmTriggered) {
+      digitalWrite(ledRed, HIGH);   // Alarm LED ON
+      tone(buzzer, 1000);           // buzzer ON
+    } else {
+      digitalWrite(ledRed, LOW);    // Alarm LED OFF
+      noTone(buzzer);               // buzzer OFF
+    }
+
+  } else {
+    // System disarmed
+    digitalWrite(ledGreen, LOW);
+    digitalWrite(ledRed, LOW);
+    noTone(buzzer);
+  }
+}
